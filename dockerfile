@@ -1,0 +1,46 @@
+# ----------------------------------
+# Stage 1: prepare ffmpeg
+# ----------------------------------
+
+FROM python:3.13-slim AS ffmpeg
+
+WORKDIR /autumn
+
+USER root
+
+RUN apt-get update && apt-get install -y \
+  ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+# ----------------------------------
+# Stage 2: prepare requirements.txt
+# ----------------------------------
+
+FROM python:3.13-slim AS requirements
+
+WORKDIR /autumn
+
+USER root
+
+COPY requirements.txt .
+
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install \
+      --no-cache-dir \
+      --prefix=/requirements \
+      -r requirements.txt \
+    && pip cache purge
+
+# ----------------------------------
+# Stage 3: prepare project
+# ----------------------------------
+
+FROM python:3.13-slim
+
+WORKDIR /autumn
+
+USER root
+
+COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
+COPY --from=requirements /requirements /usr/local
+COPY src ./src
