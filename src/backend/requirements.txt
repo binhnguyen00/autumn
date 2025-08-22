@@ -1,0 +1,7 @@
+flask
+python-dotenv
+openai-whisper
+sounddevice
+fastapi
+uvicorn
+websockets

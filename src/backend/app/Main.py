@@ -3,8 +3,8 @@ import logging;
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect;
 from fastapi.middleware.cors import CORSMiddleware;
 
-from WhisperService import WhisperService;
-from WebSocketManager import WebSocketManager;
+from .WhisperService import WhisperService;
+from .WebSocketManager import WebSocketManager;
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +21,8 @@ websocket_manager = WebSocketManager()
 app: FastAPI = FastAPI(title="Autumn", description="Autumn is a speech-to-text service", version="0.0.1")
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:3000"],
+  # allow_origins=["http://localhost:3000"],
+  allow_origins=["*"],
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
