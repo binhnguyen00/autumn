@@ -2,6 +2,7 @@ import os;
 import json;
 import unittest;
 import warnings;
+import sounddevice;
 
 from whisper import Whisper, load_model, available_models;
 
@@ -30,6 +31,12 @@ class UnitTest(unittest.TestCase):
 
   def test_english(self):
     result: dict = self.model.transcribe(f"{self.audio_dir}/english.mp3")
+    print(json.dumps(result.get("text"), indent=2, ensure_ascii=False))
+    self.assertTrue(result.get("text", False))
+
+  def test_mic(self):
+    audio = sounddevice.rec()
+    result: dict = self.model.transcribe(audio)
     print(json.dumps(result.get("text"), indent=2, ensure_ascii=False))
     self.assertTrue(result.get("text", False))
 
