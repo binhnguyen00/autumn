@@ -1,13 +1,9 @@
-import logging;
-
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect;
 from fastapi.middleware.cors import CORSMiddleware;
+from fastapi.logger import logger;
 
 from .WhisperService import WhisperService;
 from .WebSocketManager import WebSocketManager;
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # ============================================
 # services
