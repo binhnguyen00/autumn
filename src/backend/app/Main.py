@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect;
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException, status;
 from fastapi.middleware.cors import CORSMiddleware;
 from fastapi.logger import logger;
 
@@ -45,7 +45,7 @@ async def process_audio_pipeline(websocket: WebSocket, audio_data: bytes):
       "type": "status", 
       "message": "Transcribing audio..."
     })
-    transcript = await whisper_service.transcribe(audio_data)
+    transcript = whisper_service.transcribe(audio_data)
     await websocket_manager.send_message(websocket, {
       "type": "transcript", 
       "text": transcript
@@ -69,5 +69,22 @@ async def health_check():
   return "healthy"
 
 @app.post("/api/audio")
-async def audio_endpoint():
-  return "healthy"
+async def audio_endpoint(audio: UploadFile = File(...)):
+  try:
+    audio_data: bytes = await audio.read()
+    transcript: str = whisper_service.transcribe(audio_data)
+    logger.info(f"Transcript: {transcript}")
+    
+    # TODO: Process the transcript with OpenAI API if needed
+    
+    return {
+      "status": "success",
+      "transcript": transcript,
+      "message": "Audio processed successfully"
+    }
+  except Exception as e:
+    logger.error(f"Error processing audio: {e}")
+    raise HTTPException(
+      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+      detail=f"Error processing audio: {str(e)}"
+    )

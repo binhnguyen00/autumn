@@ -1,3 +1,5 @@
+import numpy;
+
 from whisper import load_model, available_models, Whisper;
 
 class WhisperService():
@@ -7,4 +9,8 @@ class WhisperService():
     self.model = load_model("large-v3-turbo")
   
   def transcribe(self, audio: bytes) -> str:
-    pass
+    ndarray: numpy.ndarray = numpy.frombuffer(audio, dtype=numpy.int16)
+    result: dict = self.model.transcribe(audio=ndarray)
+    if (not result.get("text", False)):
+      raise Exception("Failed to transcribe audio")
+    return result.get("text") # type: ignore
