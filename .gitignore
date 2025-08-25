@@ -209,3 +209,6 @@ __marimo__/
 
 # VSCode
 **/.vscode/
+
+# frontend
+**/src/frontend/node_modules

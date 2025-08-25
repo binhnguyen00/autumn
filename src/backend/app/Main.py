@@ -67,3 +67,7 @@ async def process_audio_pipeline(websocket: WebSocket, audio_data: bytes):
 @app.get("/health")
 async def health_check():
   return "healthy"
+
+@app.post("/api/audio")
+async def audio_endpoint():
+  return "healthy"

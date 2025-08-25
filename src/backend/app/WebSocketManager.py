@@ -1,9 +1,7 @@
 import json;
-import logging;
 
 from fastapi import WebSocket;
-
-logger = logging.getLogger(__name__)
+from fastapi.logger import logger;
 
 class WebSocketManager():
     def __init__(self):
