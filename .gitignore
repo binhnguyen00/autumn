@@ -212,3 +212,6 @@ __marimo__/
 
 # frontend
 **/src/frontend/node_modules
+**/src/frontend/pnpm-lock.yaml
+**/src/frontend/pnpm-workspace.yaml
+**/src/frontend/package-lock.json

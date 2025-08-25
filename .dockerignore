@@ -209,3 +209,8 @@ __marimo__/
 
 # VSCode
 **/.vscode/
+
+# custom
+**/*.log
+**/node_modules
+**/__pycache__

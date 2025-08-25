@@ -61,8 +61,4 @@ RUN mkdir -p /root/.cache/whisper
 COPY --from=whisper /root/.cache/whisper /root/.cache/whisper
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
 
-# copy project
-COPY runtime runtime
-RUN chmod 755 ./runtime/env.sh
-RUN chmod 755 ./runtime/backend.sh
 COPY src/backend ./src/backend
