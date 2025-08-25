@@ -1,15 +1,14 @@
-import axios from 'axios';
-
-import { useState, useRef, useEffect } from 'react';
+import React from "react";
+import axios from "axios";
 
 export function AudioRecorder() {
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [isSending, setIsSending] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const mediaRecorder = useRef<MediaRecorder | null>(null);
-  const audioChunks = useRef<Blob[]>([]);
-  const timerRef = useRef<number | null>(null);
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [audioBlob, setAudioBlob] = React.useState<Blob | null>(null);
+  const [isSending, setIsSending] = React.useState(false);
+  const [recordingTime, setRecordingTime] = React.useState(0);
+  const mediaRecorder = React.useRef<MediaRecorder | null>(null);
+  const audioChunks = React.useRef<Blob[]>([]);
+  const timerRef = React.useRef<number | null>(null);
 
   const startRecording = async () => {
     try {
@@ -24,7 +23,7 @@ export function AudioRecorder() {
       };
 
       mediaRecorder.current.onstop = () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
         setAudioBlob(audioBlob);
         if (timerRef.current !== null) {
           clearInterval(timerRef.current);
@@ -42,8 +41,8 @@ export function AudioRecorder() {
       timerRef.current = timerId;
 
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      alert('Could not access microphone. Please ensure you have granted microphone permissions.');
+      console.error("Error accessing microphone:", error);
+      alert("Could not access microphone. Please ensure you have granted microphone permissions.");
     }
   };
 
@@ -59,29 +58,29 @@ export function AudioRecorder() {
     if (!audioBlob) return;
 
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
+    formData.append("audio", audioBlob, "recording.wav");
 
     try {
       setIsSending(true);
-      const response = await axios.post('http://localhost:8080/api/audio', formData, {
+      const response = await axios.post("http://localhost:8080/api/audio", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
 
-      console.log('Audio uploaded successfully:', response.data);
-      alert('Audio sent successfully!');
+      console.log("Audio uploaded successfully:", response.data);
+      alert("Audio sent successfully!");
       setAudioBlob(null);
       setRecordingTime(0);
     } catch (error) {
-      console.error('Error uploading audio:', error);
-      alert('Failed to send audio. Please try again.');
+      console.error("Error uploading audio:", error);
+      alert("Failed to send audio. Please try again.");
     } finally {
       setIsSending(false);
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       if (mediaRecorder.current && isRecording) {
         mediaRecorder.current.stop();
@@ -96,55 +95,29 @@ export function AudioRecorder() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
-    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px', textAlign: 'center' }}>
-      <h2>Audio Recorder</h2>
+    <div className="max-w-[500px] mx-auto p-5 text-center">
+      <h2 className="text-2xl font-bold mb-6">Audio Recorder</h2>
 
       {!isRecording && !audioBlob && (
         <button
           onClick={startRecording}
-          style={{
-            padding: '10px 20px',
-            fontSize: '16px',
-            backgroundColor: '#1976d2',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginTop: '20px'
-          }}
+          className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mt-5"
         >
           Start Recording
         </button>
       )}
 
       {isRecording && (
-        <div style={{ margin: '20px 0' }}>
-          <div style={{
-            width: '20px',
-            height: '20px',
-            backgroundColor: 'red',
-            borderRadius: '50%',
-            display: 'inline-block',
-            margin: '10px 0',
-            animation: 'pulse 1.5s infinite'
-          }}></div>
-          <p>Recording: {formatTime(recordingTime)}</p>
+        <div className="my-5">
+          <div className="w-5 h-5 bg-red-500 rounded-full inline-block my-2.5 animate-pulse"></div>
+          <p className="my-2">Recording: {formatTime(recordingTime)}</p>
           <button
             onClick={stopRecording}
-            style={{
-              padding: '10px 20px',
-              fontSize: '16px',
-              backgroundColor: '#dc004e',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginTop: '10px'
-            }}
+            className="px-5 py-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors mt-2.5"
           >
             Stop Recording
           </button>
@@ -152,42 +125,28 @@ export function AudioRecorder() {
       )}
 
       {audioBlob && !isRecording && (
-        <div style={{ margin: '20px 0' }}>
-          <p>Recording complete! ({formatTime(recordingTime)})</p>
+        <div className="my-5">
+          <p className="mb-2">Recording complete! ({formatTime(recordingTime)})</p>
           <audio
             src={URL.createObjectURL(audioBlob)}
             controls
-            style={{ width: '100%', margin: '20px 0' }}
+            className="w-full my-5"
           />
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+          <div className="flex gap-2.5 justify-center mt-5">
             <button
               onClick={() => setAudioBlob(null)}
               disabled={isSending}
-              style={{
-                padding: '8px 16px',
-                fontSize: '14px',
-                backgroundColor: '#f5f5f5',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
+              className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Discard
             </button>
             <button
               onClick={sendAudioToBackend}
               disabled={isSending}
-              style={{
-                padding: '8px 16px',
-                fontSize: '14px',
-                backgroundColor: isSending ? '#ccc' : '#1976d2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: isSending ? 'not-allowed' : 'pointer'
-              }}
+              className={`px-4 py-2 rounded-md text-white transition-colors ${isSending ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                }`}
             >
-              {isSending ? 'Sending...' : 'Send'}
+              {isSending ? "Sending..." : "Send"}
             </button>
           </div>
         </div>
