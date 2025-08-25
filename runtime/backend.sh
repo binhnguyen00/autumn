@@ -29,6 +29,7 @@ fi
 
 if [ "$COMMAND" = "start" ]; then
   cd $PROJECT_DIR
+  activate_venv
   uvicorn \
     src.backend.app.Main:app \
     --host 0.0.0.0 \
