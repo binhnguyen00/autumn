@@ -5,3 +5,4 @@ sounddevice
 fastapi
 uvicorn
 websockets
+debugpy
