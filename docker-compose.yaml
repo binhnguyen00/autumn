@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   backend:
     build:
@@ -8,6 +9,12 @@ services:
     command: uvicorn src.backend.app.Main:app --host 0.0.0.0 --port 8080 --log-level info --log-config ./src/backend/logs/config.ini --reload
     volumes:
       - ./src/backend/logs:/src/backend/logs
+      - model_cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build:
@@ -15,4 +22,9 @@ services:
       dockerfile: src/frontend/dockerfile
     ports:
       - "3000:3000"
-    command: pnpm run dev
+    command: pnpm run dev --host 0.0.0.0 --port 3000
+    depends_on:
+      - backend
+
+volumes:
+  model_cache:

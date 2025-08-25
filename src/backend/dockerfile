@@ -1,7 +1,6 @@
 # ----------------------------------
 # Stage 1: prepare ffmpeg
 # ----------------------------------
-
 FROM python:3.13-slim AS ffmpeg
 
 USER root
@@ -11,22 +10,8 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------------
-# Stage 2: prepare whisper model
+# Stage 2: install Python dependencies
 # ----------------------------------
-
-FROM python:3.13-slim AS whisper
-
-USER root
-
-RUN pip install --no-cache-dir huggingface_hub
-
-RUN mkdir -p /root/.cache/whisper
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai/whisper-large-v3-turbo', local_dir='/root/.cache/whisper')"
-
-# ----------------------------------
-# Stage 3: install Python dependencies
-# ----------------------------------
-
 FROM python:3.13-slim AS deps
 
 WORKDIR /autumn
@@ -39,9 +24,8 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r src/backend/requirements.txt
 
 # ----------------------------------
-# Stage 4: prepare project
+# Stage 3: final image
 # ----------------------------------
-
 FROM python:3.13-slim
 
 WORKDIR /autumn
@@ -54,13 +38,11 @@ RUN apt-get update && apt-get install -y \
   iproute2 \
   && rm -rf /var/lib/apt/lists/*
 
-# copy python deps
 COPY --from=deps /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=deps /usr/local/bin /usr/local/bin
-
-# copy whisper deps
-RUN mkdir -p /root/.cache/whisper
-COPY --from=whisper /root/.cache/whisper /root/.cache/whisper
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
+
+RUN mkdir -p /root/.cache/huggingface
+RUN python -c "from faster_whisper import WhisperModel; WhisperModel('large-v3-turbo', device='cpu')" || echo "Model download failed, will retry at runtime"
 
 COPY src/backend ./src/backend
