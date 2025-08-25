@@ -20,7 +20,8 @@ USER root
 
 RUN pip install --no-cache-dir huggingface_hub
 
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai/whisper-large-v3-turbo', local_dir='/.cache/whisper')"
+RUN mkdir -p /root/.cache/whisper
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai/whisper-large-v3-turbo', local_dir='/root/.cache/whisper')"
 
 # ----------------------------------
 # Stage 3: install Python dependencies
@@ -47,10 +48,21 @@ USER root
 
 RUN apt-get update && apt-get install -y \
   curl \
+  htop \
+  iproute2 \
   && rm -rf /var/lib/apt/lists/*
 
+# copy python deps
 COPY --from=deps /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=deps /usr/local/bin /usr/local/bin
+
+# copy whisper deps
+RUN mkdir -p /root/.cache/whisper
+COPY --from=whisper /root/.cache/whisper /root/.cache/whisper
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
-COPY --from=whisper /.cache/whisper /root/.cache/whisper
+
+# copy project
+COPY runtime runtime
+RUN chmod 755 ./runtime/env.sh
+RUN chmod 755 ./runtime/backend.sh
 COPY src/backend ./src/backend
