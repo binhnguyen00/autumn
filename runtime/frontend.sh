@@ -24,8 +24,8 @@ else
 fi
 
 if [ "$COMMAND" = "start" ]; then
-  cd $PROJECT_DIR
-  npm run dev
+  cd $PROJECT_DIR/src/frontend
+  pnpm run dev
 elif [ "$COMMAND" = "stop" ]; then
   exit 0
 else

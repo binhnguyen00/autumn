@@ -1,26 +1,15 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import AudioRecorder from './components/AudioRecorder';
+import { AudioRecorder } from "./components/AudioRecorder";
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
-
-function App() {
+export function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
-        <AudioRecorder />
-      </div>
-    </ThemeProvider>
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      backgroundColor: "#f5f5f5",
+      fontFamily: "Arial, sans-serif"
+    }}>
+      <AudioRecorder />
+    </div>
   );
-}
-
-export default App;
+};

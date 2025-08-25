@@ -1,12 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { Button, Box, CircularProgress, Typography, Paper } from '@mui/material';
-import MicIcon from '@mui/icons-material/Mic';
-import StopIcon from '@mui/icons-material/Stop';
-import SendIcon from '@mui/icons-material/Send';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import axios from 'axios';
 
-const AudioRecorder = () => {
+import { useState, useRef, useEffect } from 'react';
+
+export function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isSending, setIsSending] = useState(false);
@@ -104,113 +100,98 @@ const AudioRecorder = () => {
   };
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-        p: 4,
-        width: '100%',
-        maxWidth: 500,
-        margin: '0 auto',
-        borderRadius: 2,
-        backgroundColor: 'background.paper'
-      }}
-    >
-      <Typography variant="h4" component="h1" gutterBottom color="primary">
-        Audio Recorder
-      </Typography>
+    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px', textAlign: 'center' }}>
+      <h2>Audio Recorder</h2>
 
-      {isRecording ? (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            width: '100%'
+      {!isRecording && !audioBlob && (
+        <button
+          onClick={startRecording}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: '#1976d2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginTop: '20px'
           }}
         >
-          <Box className="recording" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FiberManualRecordIcon color="error" fontSize="large" />
-            <Typography variant="h6" color="error">
-              Recording...
-            </Typography>
-          </Box>
-          <Typography variant="h4" color="primary">
-            {formatTime(recordingTime)}
-          </Typography>
-          <Button
-            variant="contained"
-            color="error"
+          Start Recording
+        </button>
+      )}
+
+      {isRecording && (
+        <div style={{ margin: '20px 0' }}>
+          <div style={{
+            width: '20px',
+            height: '20px',
+            backgroundColor: 'red',
+            borderRadius: '50%',
+            display: 'inline-block',
+            margin: '10px 0',
+            animation: 'pulse 1.5s infinite'
+          }}></div>
+          <p>Recording: {formatTime(recordingTime)}</p>
+          <button
             onClick={stopRecording}
-            startIcon={<StopIcon />}
-            size="large"
-            fullWidth
-            sx={{ mt: 2 }}
+            style={{
+              padding: '10px 20px',
+              fontSize: '16px',
+              backgroundColor: '#dc004e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '10px'
+            }}
           >
             Stop Recording
-          </Button>
-        </Box>
-      ) : (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={startRecording}
-          startIcon={<MicIcon />}
-          disabled={isSending}
-          size="large"
-          fullWidth
-          sx={{
-            py: 2,
-            fontSize: '1.1rem',
-            fontWeight: 'bold',
-            background: 'linear-gradient(45deg, #1976d2 30%, #21CBF3 90%)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #1565c0 30%, #00B0FF 90%)',
-            },
-          }}
-        >
-          {audioBlob ? 'Record Again' : 'Start Recording'}
-        </Button>
+          </button>
+        </div>
       )}
 
       {audioBlob && !isRecording && (
-        <Box sx={{ mt: 2, width: '100%' }}>
-          <Typography variant="h6" gutterBottom>
-            Listen to your recording:
-          </Typography>
+        <div style={{ margin: '20px 0' }}>
+          <p>Recording complete! ({formatTime(recordingTime)})</p>
           <audio
-            controls
             src={URL.createObjectURL(audioBlob)}
-            style={{ width: '100%', margin: '10px 0' }}
+            controls
+            style={{ width: '100%', margin: '20px 0' }}
           />
-          <Button
-            variant="contained"
-            color="success"
-            onClick={sendAudioToBackend}
-            disabled={isSending}
-            startIcon={isSending ? <CircularProgress size={24} /> : <SendIcon />}
-            size="large"
-            fullWidth
-            sx={{
-              mt: 2,
-              py: 1.5,
-              fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #2e7d32 30%, #4caf50 90%)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #1b5e20 30%, #2e7d32 90%)',
-              },
-            }}
-          >
-            {isSending ? 'Sending...' : 'Send to Server'}
-          </Button>
-        </Box>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+            <button
+              onClick={() => setAudioBlob(null)}
+              disabled={isSending}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                backgroundColor: '#f5f5f5',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Discard
+            </button>
+            <button
+              onClick={sendAudioToBackend}
+              disabled={isSending}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                backgroundColor: isSending ? '#ccc' : '#1976d2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: isSending ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isSending ? 'Sending...' : 'Send'}
+            </button>
+          </div>
+        </div>
       )}
-    </Paper>
+    </div>
   );
 };
-
-export default AudioRecorder;
