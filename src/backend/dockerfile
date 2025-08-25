@@ -31,6 +31,8 @@ FROM python:3.13-slim AS deps
 
 WORKDIR /autumn
 
+USER root
+
 COPY src/backend/requirements.txt src/backend/requirements.txt
 
 RUN pip install --upgrade pip setuptools wheel

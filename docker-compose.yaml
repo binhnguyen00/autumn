@@ -1,21 +1,18 @@
 services:
   backend:
     build:
-      context: ./src/backend
-      dockerfile: ./src/backend/dockerfile
+      context: .
+      dockerfile: src/backend/dockerfile
     ports:
       - "8080:8080"
-    command: uvicorn app.Main:app --host 0.0.0.0 --port 8080 --log-level info --log-config /logs/config.ini --reload
+    command: uvicorn src.backend.app.Main:app --host 0.0.0.0 --port 8080 --log-level info --log-config ./src/backend/logs/config.ini --reload
     volumes:
-      - ./logs:/logs
+      - ./src/backend/logs:/src/backend/logs
 
   frontend:
     build:
-      context: ./src/frontend
-      dockerfile: ./src/frontend/Dockerfile
+      context: .
+      dockerfile: src/frontend/dockerfile
     ports:
-      - "5173:5173"
-    command: npm run dev
-
-volumes:
-  backend_logs:
+      - "3000:3000"
+    command: pnpm run dev
