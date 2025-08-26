@@ -10,6 +10,19 @@
 - ```frontend``` use port 3000
 - ```backend``` use port 8080
 
+### 1. Prepare project structure
+```plaintext
+autumn/
+├── .autumn-venv/
+├── runtime/
+├── src/
+│   ├── backend/
+│   └── frontend/
+├── .env
+├── docker-compose.yaml
+└── README.md
+```
+
 ### 1. Docker
 ```bash
 docker compose up --build
