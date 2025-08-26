@@ -18,6 +18,9 @@ docker compose up --build
 
 ### 2. Shellscript on your machine
 ```bash
+# download whisper model
+./runtime/backend.sh download-whisper-model
+
 # start backend
 ./runtime/backend.sh start
 

@@ -9,9 +9,14 @@ function show_helps() {
 Usage: ./backend.sh <command>
 
 Available commands:
-  start   Start the backend
-  debug   Debug the backend
-  stop    Stop the backend
+  start
+    - Start the backend
+  stop
+    - Stop the backend
+  debug
+    - Debug the backend
+  download-whisper-model
+    - Download whisper model
   """
 }
 
@@ -81,6 +86,9 @@ elif [ "$COMMAND" = "debug" ]; then
   debug
 elif [ "$COMMAND" = "stop" ]; then
   stop
+elif [ "$COMMAND" = "download-whisper-model" ]; then
+  activate_venv
+  prepare_whisper_model
 else
   echo "Unknown command: $COMMAND"
   show_helps
