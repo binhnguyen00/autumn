@@ -3,11 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware;
 from fastapi.logger import logger;
 
 from .WhisperService import WhisperService;
+from .OpenAIService import OpenAIService;
 
 # ============================================
-# services
+# components scan
 # ============================================
 whisper_service = WhisperService()
+openai_service = OpenAIService()
 
 # ============================================
 # FastAPI
@@ -21,6 +23,7 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"],
 )
+conversation_history = [] # TODO: repalce with actual database
 
 # ============================================
 # routes
@@ -31,12 +34,14 @@ async def health_check():
 
 @app.post("/audio")
 async def audio_endpoint(audio: UploadFile = File(...)):
+  global conversation_history
+
   try:
     audio_data: bytes = await audio.read()
     transcript: str = whisper_service.transcribe(audio_data)
     logger.info(f"Transcript: {transcript}")
     
-    # TODO: Process the transcript with OpenAI API if needed
+    conversation_history.append({"role": "user", "content": transcript})
     
     return {
       "status": "success",

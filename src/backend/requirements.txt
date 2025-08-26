@@ -7,3 +7,4 @@ uvicorn
 websockets
 debugpy
 python-multipart
+openai
