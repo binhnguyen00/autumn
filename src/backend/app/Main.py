@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional;
 from fastapi import FastAPI, UploadFile, File, HTTPException, status;
 from fastapi.middleware.cors import CORSMiddleware;
 from fastapi.logger import logger;
-from openai.types.chat import ChatCompletionMessageParam
+from openai.types.chat import ChatCompletionMessageParam;
 
 from .WhisperService import WhisperService;
 from .OpenAIService import OpenAIService;
