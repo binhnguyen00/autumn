@@ -40,7 +40,6 @@ function start() {
     --host 0.0.0.0 \
     --port 8080 \
     --log-level info \
-    --log-config $PROJECT_DIR/src/backend/logs/config.ini \
     --reload
 }
 
@@ -55,7 +54,6 @@ function debug() {
     --host 0.0.0.0 \
     --port 8080 \
     --log-level info \
-    --log-config $PROJECT_DIR/src/backend/logs/config.ini \
     --reload
 }
 
