@@ -1,7 +1,7 @@
 import os, json, openai;
 
 from typing import Iterable, Optional;
-from openai.types.chat import ChatCompletion, ChatCompletionToolUnionParam;
+from openai.types.chat import ChatCompletion, ChatCompletionMessageParam, ChatCompletionToolUnionParam;
 from openai.types.chat.chat_completion_message import ChatCompletionMessage;
 
 from .WeatherService import WeatherService;
@@ -19,12 +19,13 @@ class OpenAIService():
 
     self.weather_service = WeatherService()
 
-  def chat(self, user_message: str) -> Optional[str]:
+  def chat(self, prompt: str, conversation_history: list[ChatCompletionMessageParam]) -> Optional[str]:
     tools: Iterable[ChatCompletionToolUnionParam] = self.available_tools()
+    messages = conversation_history + [{"role": "user", "content": prompt}]
 
     response: ChatCompletion = self.client.chat.completions.create(
       model=self.model,
-      messages=[{"role": "user", "content": user_message}],
+      messages=messages,
       tools=tools,
       function_call="auto"
     )
@@ -37,10 +38,11 @@ class OpenAIService():
       if (function_name == "get_current_weather"):
         """ get weather result and send back to the model """
         result: dict = self.weather_service.get_current_weather(location=function_args.get("location", ""))
+        
         follow_up: ChatCompletion = self.client.chat.completions.create(
           model=self.model,
-          messages=[
-            {"role": "user", "content": user_message},
+          messages=messages + [
+            {"role": "user", "content": prompt},
             {
               "role": "assistant", 
               "content": None,

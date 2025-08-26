@@ -1,6 +1,8 @@
+from typing import Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException, status;
 from fastapi.middleware.cors import CORSMiddleware;
 from fastapi.logger import logger;
+from openai.types.chat import ChatCompletionMessageParam
 
 from .WhisperService import WhisperService;
 from .OpenAIService import OpenAIService;
@@ -23,7 +25,7 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"],
 )
-conversation_history = [] # TODO: repalce with actual database
+conversation_history: list[ChatCompletionMessageParam] = [] # TODO: repalce with actual database
 
 # ============================================
 # routes
@@ -43,10 +45,13 @@ async def audio_endpoint(audio: UploadFile = File(...)):
     
     conversation_history.append({"role": "user", "content": transcript})
     
+    response: Optional[str] = openai_service.chat(transcript, conversation_history)
+    if (response):
+      conversation_history.append({"role": "assistant", "content": response})
+    
     return {
       "status": "success",
-      "transcript": transcript,
-      "message": "Audio processed successfully"
+      "response": response,
     }
   except Exception as e:
     logger.error(f"Error processing audio: {e}")
