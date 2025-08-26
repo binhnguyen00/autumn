@@ -5,7 +5,7 @@ services:
       dockerfile: src/backend/dockerfile
     ports:
       - "8080:8080"
-    command: uvicorn src.backend.app.Main:app --host 0.0.0.0 --port 8080 --log-level info --log-config ./src/backend/logs/config.ini --reload
+    command: uvicorn src.backend.app.Main:app --host 0.0.0.0 --port 8080 --log-level info --log-config /src/backend/logs/config.ini --reload
     volumes:
       - ./src/backend/logs:/src/backend/logs
     environment:
