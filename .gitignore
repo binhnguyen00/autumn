@@ -215,3 +215,4 @@ __marimo__/
 **/src/frontend/pnpm-lock.yaml
 **/src/frontend/pnpm-workspace.yaml
 **/src/frontend/package-lock.json
+**/runtime/env.sh
