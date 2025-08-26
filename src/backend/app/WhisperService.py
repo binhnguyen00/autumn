@@ -1,4 +1,4 @@
-import numpy, subprocess;
+import numpy, subprocess, pathlib, os;
 
 from fastapi.logger import logger;
 from faster_whisper import WhisperModel, available_models;
@@ -9,8 +9,23 @@ class WhisperService():
 
   def __init__(self):
     logger.info(f"Available models: {available_models()}")
-    self.model = WhisperModel("large-v3-turbo")
-  
+    try:
+      logger.info("Loading model...")
+      model_dir: str = os.getenv("WHISPER_MODEL_DIR", "")
+      if (not model_dir): 
+        raise Exception("WHISPER_MODEL_DIR is not set")
+      snapshots = pathlib.Path(model_dir)
+      hash: str = ""
+      for item in snapshots.iterdir():
+        hash = item.name
+        break
+
+      self.model: WhisperModel = WhisperModel(f"{model_dir}/{hash}", device="cpu")
+      logger.info("Model loaded successfully")
+    except Exception as e:
+      logger.error(f"Failed to load model: {e}")
+      raise
+
   def transcribe(self, audio: bytes) -> str:
     try:
       audio_data = self.decode_audio_ffmpeg(audio, sr=16000)

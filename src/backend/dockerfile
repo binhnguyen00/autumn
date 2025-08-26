@@ -32,17 +32,11 @@ WORKDIR /autumn
 
 USER root
 
-RUN apt-get update && apt-get install -y \
-  curl \
-  htop \
-  iproute2 \
-  && rm -rf /var/lib/apt/lists/*
-
 COPY --from=deps /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=deps /usr/local/bin /usr/local/bin
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
 
-RUN mkdir -p /root/.cache/huggingface
-RUN python -c "from faster_whisper import WhisperModel; WhisperModel('large-v3-turbo', device='cpu')" || echo "Model download failed, will retry at runtime"
+RUN mkdir -p /root/.cache/huggingface && chmod 777 /root/.cache/huggingface
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='mobiuslabsgmbh/faster-whisper-large-v3-turbo')"
 
 COPY src/backend ./src/backend
