@@ -3,7 +3,7 @@ from fastapi.logger import logger;
 from fastapi import APIRouter, UploadFile, File, HTTPException, status;
 
 from .WhisperService import WhisperService;
-from .OpenAIService import OpenAIService;
+from .OpenAIService import ChatResult, OpenAIService;
 from .MemoryManager import MemoryManager;
 
 class RoutesManager():
@@ -32,17 +32,25 @@ async def audio_endpoint(audio: UploadFile = File(...)):
     audio_data: bytes = await audio.read()
     transcript: str = manager.whisper_service.transcribe(audio_data)
     conversation_history.append({"role": "user", "content": transcript})
-    response: Optional[str] = manager.openai_service.chat(
+    response: ChatResult = manager.openai_service.chat(
       prompt=transcript,
       conversation_history=conversation_history,
       system_rule="You are a helpful assistant. When users ask about weather, you MUST ask for their specific location if they haven't provided one. Do not assume or guess locations based on language or context. Always require explicit location input before calling weather functions."
     )
     if (response):
-      conversation_history.append({"role": "assistant", "content": response})
+      conversation_history.append({"role": "assistant", "content": response.message})
     
+    if (response.to_be_continue):
+      return {
+        "status": "continue",
+        "message": "Audio processed successfully",
+        "data": response.message,
+      }
+
     return {
-      "status": "success",
-      "response": response,
+      "status": "complete",
+      "message": "Audio processed successfully",
+      "data": response.message,
     }
   except Exception as e:
     logger.error(f"Error processing audio: {e}")

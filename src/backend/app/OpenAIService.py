@@ -1,10 +1,18 @@
 import os, json, openai;
 
-from typing import Iterable, Optional;
+from typing import Iterable, Optional, NamedTuple, Union;
 from openai.types.chat import ChatCompletion, ChatCompletionMessageParam, ChatCompletionToolUnionParam;
 from openai.types.chat.chat_completion_message import ChatCompletionMessage;
 
 from .WeatherService import WeatherService;
+
+class ChatResult():
+  message: str
+  to_be_continue: bool
+
+  def __init__(self, message: str, to_be_continue: bool):
+    self.message = message
+    self.to_be_continue = to_be_continue
 
 class OpenAIService():
   client: openai.OpenAI
@@ -20,7 +28,7 @@ class OpenAIService():
     prompt: str, 
     conversation_history: list[ChatCompletionMessageParam], 
     system_rule: Optional[str] = None
-  ) -> Optional[str]:
+  ) -> ChatResult:
     tools: Iterable[ChatCompletionToolUnionParam] = self.available_tools()
     all_messages: list[ChatCompletionMessageParam] = []
     system_message: ChatCompletionMessageParam = {
@@ -90,9 +98,10 @@ class OpenAIService():
             *tool_messages
           ]
         )
-        return follow_up.choices[0].message.content
+        weather_result: str = follow_up.choices[0].message.content or ""
+        return ChatResult(message=weather_result, to_be_continue=False)
 
-    return message.content
+    return ChatResult(message=message.content or "", to_be_continue=True)
 
   def available_tools(self) -> Iterable[ChatCompletionToolUnionParam]:
     return [
