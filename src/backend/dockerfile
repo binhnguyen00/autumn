@@ -21,12 +21,12 @@ USER root
 COPY src/backend/requirements.txt src/backend/requirements.txt
 
 RUN pip install --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -r src/backend/requirements.txt
+RUN pip install -r src/backend/requirements.txt
 
 # ----------------------------------
-# Stage 3: final image
+# Stage 3: download whisper model
 # ----------------------------------
-FROM python:3.13-slim
+FROM python:3.13-slim AS whisper
 
 WORKDIR /autumn
 
@@ -34,9 +34,21 @@ USER root
 
 COPY --from=deps /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=deps /usr/local/bin /usr/local/bin
-COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
 
 RUN mkdir -p /root/.cache/huggingface && chmod 777 /root/.cache/huggingface
 RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='mobiuslabsgmbh/faster-whisper-large-v3-turbo')"
 
+# ----------------------------------
+# Stage 4: final image
+# ----------------------------------
+FROM python:3.13-slim
+
+WORKDIR /autumn
+
+USER root
+
+COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffmpeg
+COPY --from=whisper /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=whisper /usr/local/bin /usr/local/bin
+COPY --from=whisper /root/.cache/huggingface /root/.cache/huggingface
 COPY src/backend ./src/backend

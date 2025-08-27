@@ -1,8 +1,10 @@
-import numpy, subprocess, pathlib, os;
+import numpy, subprocess;
 
+from typing import Literal;
 from fastapi.logger import logger;
 from faster_whisper import WhisperModel, available_models;
 from faster_whisper.transcribe import Segment, TranscriptionInfo;
+from huggingface_hub import snapshot_download;
 
 class WhisperService():
   model: WhisperModel
@@ -10,26 +12,16 @@ class WhisperService():
   def __init__(self):
     logger.info(f"Available models: {available_models()}")
     try:
-      logger.info("Loading model...")
-      model_dir: str = os.getenv("WHISPER_MODEL_DIR", "")
-      if (not model_dir): 
-        raise Exception("WHISPER_MODEL_DIR is not set")
-      snapshots = pathlib.Path(model_dir)
-      hash: str = ""
-      for item in snapshots.iterdir():
-        hash = item.name
-        break
-
-      self.model: WhisperModel = WhisperModel(f"{model_dir}/{hash}", device="cpu")
-      logger.info("Model loaded successfully")
+      path = snapshot_download("mobiuslabsgmbh/faster-whisper-large-v3-turbo")
+      self.model = WhisperModel(path, device="cpu")
     except Exception as e:
       logger.error(f"Failed to load model: {e}")
       raise
 
-  def transcribe(self, audio: bytes) -> str:
+  def transcribe(self, audio: bytes, language: Literal["vi", "en"] = "vi") -> str:
     try:
       audio_data = self.decode_audio_ffmpeg(audio, sr=16000)
-      segments, info = self.model.transcribe(audio=audio_data, language="vi")
+      segments, info = self.model.transcribe(audio=audio_data, language=language)
       segments_list: list[Segment] = list(segments)
       if (not segments_list):
         return ""

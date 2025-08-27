@@ -9,7 +9,6 @@ services:
     volumes:
       - ./src/backend/logs:/src/backend/logs
     environment:
-      - WHISPER_MODEL_DIR=/root/.cache/huggingface/hub/models--mobiuslabsgmbh--faster-whisper-large-v3-turbo/snapshots
       - OPENAI_API_KEY=${OPENAI_API_KEY}
 
   frontend:
@@ -19,6 +18,3 @@ services:
     ports:
       - "3000:3000"
     command: pnpm run dev --host 0.0.0.0 --port 3000
-
-env_file:
-  - .env
