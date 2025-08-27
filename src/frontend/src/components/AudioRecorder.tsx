@@ -13,7 +13,6 @@ export function AudioRecorder() {
   const [isSending, setIsSending] = React.useState(false);
   const [recordingTime, setRecordingTime] = React.useState(0);
   const [conversationComplete, setConversationComplete] = React.useState(false);
-  const [serverMessage, setServerMessage] = React.useState<string>("");
   const [autoRecordPending, setAutoRecordPending] = React.useState(false);
   const [response, setResponse] = React.useState<string>("");
 
@@ -67,8 +66,6 @@ export function AudioRecorder() {
   };
 
   const handleServerResponse = (response: ServerResponse) => {
-    setServerMessage(response.message || "");
-
     switch (response.status) {
       case "continue":
         // Server wants another recording
@@ -112,7 +109,6 @@ export function AudioRecorder() {
 
     } catch (error) {
       console.error("Error uploading audio:", error);
-      setServerMessage("Failed to send audio. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -120,7 +116,6 @@ export function AudioRecorder() {
 
   const resetConversation = () => {
     setConversationComplete(false);
-    setServerMessage("");
     setAudioBlob(null);
     setRecordingTime(0);
     setAutoRecordPending(false);
@@ -145,20 +140,8 @@ export function AudioRecorder() {
   };
 
   return (
-    <div className="max-w-[500px] mx-auto p-5 text-center">
+    <div className="max-w-[500px] mx-auto p-5 text-center flex flex-col justify-between">
       <h2 className="text-2xl font-bold">Audio Recorder</h2>
-
-      {/* Server Message Display */}
-      {/* {serverMessage && (
-        <div className={`p-3 mb-4 rounded-md ${conversationComplete
-          ? "bg-green-100 text-green-800 border border-green-300"
-          : autoRecordPending
-            ? "bg-blue-100 text-blue-800 border border-blue-300"
-            : "bg-gray-100 text-gray-800 border border-gray-300"
-          }`}>
-          {serverMessage}
-        </div>
-      )} */}
 
       {/* Server Response Data */}
       {response && (
