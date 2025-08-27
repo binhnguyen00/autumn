@@ -1,11 +1,22 @@
 import React from "react";
 import axios from "axios";
 
+interface ServerResponse {
+  status: "continue" | "complete" | "error";
+  message?: string;
+  data?: any;
+}
+
 export function AudioRecorder() {
   const [isRecording, setIsRecording] = React.useState(false);
   const [audioBlob, setAudioBlob] = React.useState<Blob | null>(null);
   const [isSending, setIsSending] = React.useState(false);
   const [recordingTime, setRecordingTime] = React.useState(0);
+  const [conversationComplete, setConversationComplete] = React.useState(false);
+  const [serverMessage, setServerMessage] = React.useState<string>("");
+  const [autoRecordPending, setAutoRecordPending] = React.useState(false);
+  const [response, setResponse] = React.useState<string>("");
+
   const mediaRecorder = React.useRef<MediaRecorder | null>(null);
   const audioChunks = React.useRef<Blob[]>([]);
   const timerRef = React.useRef<number | null>(null);
@@ -34,6 +45,7 @@ export function AudioRecorder() {
       mediaRecorder.current.start();
       setIsRecording(true);
       setRecordingTime(0);
+      setAutoRecordPending(false);
 
       const timerId = window.setInterval(() => {
         setRecordingTime(prev => prev + 1);
@@ -54,6 +66,33 @@ export function AudioRecorder() {
     }
   };
 
+  const handleServerResponse = (response: ServerResponse) => {
+    setServerMessage(response.message || "");
+
+    switch (response.status) {
+      case "continue":
+        // Server wants another recording
+        setAutoRecordPending(true);
+        setAudioBlob(null);
+        setRecordingTime(0);
+        setResponse(response.data);
+        break;
+
+      case "complete":
+        // Conversation is complete
+        setConversationComplete(true);
+        setAudioBlob(null);
+        setRecordingTime(0);
+        setResponse(response.data);
+        break;
+
+      case "error":
+        // Handle error case
+        console.error("Server error:", response.message);
+        break;
+    }
+  };
+
   const sendAudioToBackend = async () => {
     if (!audioBlob) return;
 
@@ -62,22 +101,29 @@ export function AudioRecorder() {
 
     try {
       setIsSending(true);
-      const response = await axios.post("http://localhost:8080/audio", formData, {
+      const response = await axios.post<ServerResponse>("http://localhost:8080/audio", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
       console.log("Audio uploaded successfully:", response.data);
-      alert("Audio sent successfully!");
-      setAudioBlob(null);
-      setRecordingTime(0);
+      handleServerResponse(response.data);
+
     } catch (error) {
       console.error("Error uploading audio:", error);
-      alert("Failed to send audio. Please try again.");
+      setServerMessage("Failed to send audio. Please try again.");
     } finally {
       setIsSending(false);
     }
+  };
+
+  const resetConversation = () => {
+    setConversationComplete(false);
+    setServerMessage("");
+    setAudioBlob(null);
+    setRecordingTime(0);
+    setAutoRecordPending(false);
   };
 
   React.useEffect(() => {
@@ -100,9 +146,57 @@ export function AudioRecorder() {
 
   return (
     <div className="max-w-[500px] mx-auto p-5 text-center">
-      <h2 className="text-2xl font-bold mb-6">Audio Recorder</h2>
+      <h2 className="text-2xl font-bold">Audio Recorder</h2>
 
-      {!isRecording && !audioBlob && (
+      {/* Server Message Display */}
+      {/* {serverMessage && (
+        <div className={`p-3 mb-4 rounded-md ${conversationComplete
+          ? "bg-green-100 text-green-800 border border-green-300"
+          : autoRecordPending
+            ? "bg-blue-100 text-blue-800 border border-blue-300"
+            : "bg-gray-100 text-gray-800 border border-gray-300"
+          }`}>
+          {serverMessage}
+        </div>
+      )} */}
+
+      {/* Server Response Data */}
+      {response && (
+        <div className="p-5 rounded-md bg-gray-100 text-gray-800 border border-gray-300">
+          {response}
+        </div>
+      )}
+
+      {/* Conversation Complete State */}
+      {conversationComplete && (
+        <div>
+          <div className="text-green-600 text-lg font-semibold mb-4">
+            ✅ Conversation Complete!
+          </div>
+          <button
+            onClick={resetConversation}
+            className="bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            Start New Conversation
+          </button>
+        </div>
+      )}
+
+      {/* Auto Record Pending State */}
+      {autoRecordPending && !isRecording && !conversationComplete && (
+        <div className="my-5">
+          <p className="mb-3 text-blue-600">Ready for next recording</p>
+          <button
+            onClick={startRecording}
+            className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors animate-pulse"
+          >
+            Continue Recording
+          </button>
+        </div>
+      )}
+
+      {/* Initial Recording State */}
+      {!isRecording && !audioBlob && !conversationComplete && !autoRecordPending && (
         <button
           onClick={startRecording}
           className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mt-5"
@@ -111,7 +205,8 @@ export function AudioRecorder() {
         </button>
       )}
 
-      {isRecording && (
+      {/* Recording State */}
+      {isRecording && !conversationComplete && (
         <div className="my-5">
           <div className="w-5 h-5 bg-red-500 rounded-full inline-block my-2.5 animate-pulse"></div>
           <p className="my-2">Recording: {formatTime(recordingTime)}</p>
@@ -124,7 +219,8 @@ export function AudioRecorder() {
         </div>
       )}
 
-      {audioBlob && !isRecording && (
+      {/* Audio Ready State */}
+      {audioBlob && !isRecording && !conversationComplete && !autoRecordPending && (
         <div className="my-5">
           <p className="mb-2">Recording complete! ({formatTime(recordingTime)})</p>
           <audio
