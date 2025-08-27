@@ -32,7 +32,11 @@ async def audio_endpoint(audio: UploadFile = File(...)):
     audio_data: bytes = await audio.read()
     transcript: str = manager.whisper_service.transcribe(audio_data)
     conversation_history.append({"role": "user", "content": transcript})
-    response: Optional[str] = manager.openai_service.chat(transcript, conversation_history)
+    response: Optional[str] = manager.openai_service.chat(
+      prompt=transcript,
+      conversation_history=conversation_history,
+      system_rule="You are a helpful assistant. When users ask about weather, you MUST ask for their specific location if they haven't provided one. Do not assume or guess locations based on language or context. Always require explicit location input before calling weather functions."
+    )
     if (response):
       conversation_history.append({"role": "assistant", "content": response})
     
