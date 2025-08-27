@@ -7,8 +7,8 @@ from openai.types.chat.chat_completion_message import ChatCompletionMessage;
 from .WeatherService import WeatherService;
 
 class OpenAIService():
-  client: openai.OpenAI
   model: str
+  client: openai.OpenAI
   weather_service: WeatherService
 
   def __init__(self):
@@ -27,36 +27,45 @@ class OpenAIService():
       model=self.model,
       messages=messages,
       tools=tools,
-      function_call="auto"
+      tool_choice="auto"
     )
     message: ChatCompletionMessage = response.choices[0].message
 
-    if (message.function_call):
-      function_name: str = message.function_call.name
-      function_args: dict = json.loads(message.function_call.arguments)
+    if (message.tool_calls):
+      tool_messages = []
+      
+      for tool_call in message.tool_calls:
+        if (tool_call.type == "function"):
+          function_name: str = tool_call.function.name
+          function_args: dict = json.loads(tool_call.function.arguments)
 
-      if (function_name == "get_current_weather"):
-        """ get weather result and send back to the model """
-        result: dict = self.weather_service.get_current_weather(location=function_args.get("location", ""))
+        if (function_name == "get_current_weather"):
+          result: dict = self.weather_service.get_current_weather(location=function_args.get("location", ""))
+          tool_messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": json.dumps(result)
+          })
+
+      if (tool_messages):
+        assistant_message: ChatCompletionMessageParam = {
+          "role": "assistant",
+          "content": message.content,
+          "tool_calls": [
+            {
+              "id": tool_call.id,
+              "type": tool_call.type,
+              "function": {
+                "name": tool_call.function.name,
+                "arguments": tool_call.function.arguments
+              }
+            } for tool_call in message.tool_calls if (tool_call.type == "function")
+          ]
+        }
         
         follow_up: ChatCompletion = self.client.chat.completions.create(
           model=self.model,
-          messages=messages + [
-            {"role": "user", "content": prompt},
-            {
-              "role": "assistant", 
-              "content": None,
-              "function_call": {
-                "name": function_name,
-                "arguments": message.function_call.arguments
-              }
-            },
-            {
-              "role": "function",
-              "name": function_name,
-              "content": json.dumps(result)
-            }
-          ],
+          messages=messages + [assistant_message] + tool_messages,
         )
         return follow_up.choices[0].message.content
 

@@ -25,7 +25,9 @@ class WhisperService():
       segments_list: list[Segment] = list(segments)
       if (not segments_list):
         return ""
-      return segments_list[0].text
+      text = segments_list[0].text
+      logger.info(f"Transcript: {text}")
+      return text
     except Exception as e:
       logger.error(f"Error processing audio: {e}")
       raise

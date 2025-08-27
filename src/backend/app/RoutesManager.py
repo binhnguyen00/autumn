@@ -31,10 +31,7 @@ async def audio_endpoint(audio: UploadFile = File(...)):
   try:
     audio_data: bytes = await audio.read()
     transcript: str = manager.whisper_service.transcribe(audio_data)
-    logger.info(f"Transcript: {transcript}")
-    
     conversation_history.append({"role": "user", "content": transcript})
-    
     response: Optional[str] = manager.openai_service.chat(transcript, conversation_history)
     if (response):
       conversation_history.append({"role": "assistant", "content": response})
