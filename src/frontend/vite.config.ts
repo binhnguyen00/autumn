@@ -6,10 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    strictPort: true
+    strictPort: true,
+    allowedHosts: [".trycloudflare.com"]
   },
   preview: {
     port: 3000,
-    strictPort: true
+    strictPort: true,
+    allowedHosts: [".trycloudflare.com"]
   }
 })
